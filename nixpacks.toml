@@ -5,4 +5,4 @@ nixPkgs = ["jdk17", "maven"]
 cmds = ["cd campus-lost-found && mvn clean package -DskipTests"]
 
 [start]
-cmd = "cd campus-lost-found && java -jar target/campus-lost-found-1.0.0.jar"
+cmd = "cd campus-lost-found && java -jar target/campus-lost-found-1.0.0.jar --spring.profiles.active=prod"
