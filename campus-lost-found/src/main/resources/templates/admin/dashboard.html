@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Admin Dashboard — FindBack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body class="lf-admin-body">
+
+<div class="d-flex min-vh-100">
+
+    <!-- ========== ADMIN SIDEBAR ========== -->
+    <aside class="lf-admin-sidebar">
+        <!-- Brand -->
+        <div class="lf-admin-sidebar-brand">
+            <a th:href="@{/}" class="lf-brand text-decoration-none">
+                <i class="bi bi-search-heart-fill"></i><span>FindBack</span>
+            </a>
+            <div class="lf-admin-sidebar-badge">Admin</div>
+        </div>
+
+        <!-- Nav Links -->
+        <nav class="lf-admin-nav">
+            <div class="lf-admin-nav-section-label">Main</div>
+            <a th:href="@{/admin}" class="lf-admin-nav-link active">
+                <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+            </a>
+            <a th:href="@{/admin/users}" class="lf-admin-nav-link">
+                <i class="bi bi-people"></i><span>Users</span>
+            </a>
+            <a th:href="@{/admin/items}" class="lf-admin-nav-link">
+                <i class="bi bi-box-seam"></i><span>Items</span>
+            </a>
+
+            <div class="lf-admin-nav-section-label mt-3">User Area</div>
+            <a th:href="@{/dashboard}" class="lf-admin-nav-link">
+                <i class="bi bi-grid"></i><span>My Dashboard</span>
+            </a>
+            <a th:href="@{/browse}" class="lf-admin-nav-link">
+                <i class="bi bi-search"></i><span>Browse Items</span>
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="lf-admin-sidebar-footer">
+            <form th:action="@{/logout}" method="post">
+                <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                <button type="submit" class="lf-admin-nav-link w-100 border-0 bg-transparent text-start">
+                    <i class="bi bi-box-arrow-right"></i><span>Sign Out</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ========== MAIN CONTENT ========== -->
+    <div class="lf-admin-main flex-grow-1">
+
+        <!-- Top Bar -->
+        <header class="lf-admin-topbar">
+            <div class="d-flex align-items-center gap-2">
+                <button class="btn btn-sm d-lg-none" id="sidebarToggle">
+                    <i class="bi bi-list fs-5"></i>
+                </button>
+                <h4 class="mb-0 fw-semibold">Admin Dashboard</h4>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <span class="text-muted small">
+                    <i class="bi bi-person-circle me-1"></i>
+                    <sec:authentication property="name"/>
+                </span>
+            </div>
+        </header>
+
+        <!-- Content -->
+        <div class="lf-admin-content p-4">
+
+            <!-- Flash Messages -->
+            <div th:if="${successMsg}" class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4" role="alert">
+                <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+                <span th:text="${successMsg}">Success</span>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+
+            <!-- ===== STAT CARDS ===== -->
+            <div class="row g-4 mb-4">
+                <div class="col-6 col-xl-2-4">
+                    <div class="lf-admin-stat-card lf-admin-stat-users">
+                        <div class="lf-admin-stat-icon"><i class="bi bi-people-fill"></i></div>
+                        <div class="lf-admin-stat-value" th:text="${totalUsers != null ? totalUsers : 0}">0</div>
+                        <div class="lf-admin-stat-label">Total Users</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2-4">
+                    <div class="lf-admin-stat-card lf-admin-stat-lost">
+                        <div class="lf-admin-stat-icon"><i class="bi bi-search"></i></div>
+                        <div class="lf-admin-stat-value" th:text="${totalLost != null ? totalLost : 0}">0</div>
+                        <div class="lf-admin-stat-label">Total Lost</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2-4">
+                    <div class="lf-admin-stat-card lf-admin-stat-found">
+                        <div class="lf-admin-stat-icon"><i class="bi bi-box-seam"></i></div>
+                        <div class="lf-admin-stat-value" th:text="${totalFound != null ? totalFound : 0}">0</div>
+                        <div class="lf-admin-stat-label">Total Found</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2-4">
+                    <div class="lf-admin-stat-card lf-admin-stat-claimed">
+                        <div class="lf-admin-stat-icon"><i class="bi bi-patch-check"></i></div>
+                        <div class="lf-admin-stat-value" th:text="${totalClaimed != null ? totalClaimed : 0}">0</div>
+                        <div class="lf-admin-stat-label">Claimed</div>
+                    </div>
+                </div>
+                <div class="col-6 col-xl-2-4">
+                    <div class="lf-admin-stat-card lf-admin-stat-active">
+                        <div class="lf-admin-stat-icon"><i class="bi bi-activity"></i></div>
+                        <div class="lf-admin-stat-value" th:text="${totalActive != null ? totalActive : 0}">0</div>
+                        <div class="lf-admin-stat-label">Active</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== RECENT ITEMS TABLE ===== -->
+            <div class="lf-admin-card">
+                <div class="lf-admin-card-header d-flex align-items-center justify-content-between">
+                    <h5 class="mb-0"><i class="bi bi-clock-history me-2"></i>Recent Items</h5>
+                    <a th:href="@{/admin/items}" class="btn btn-sm lf-btn-outline-primary">View All</a>
+                </div>
+                <div class="lf-admin-card-body p-0">
+                    <div th:if="${recentItems != null and !#lists.isEmpty(recentItems)}" class="table-responsive">
+                        <table class="table lf-admin-table mb-0">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Title</th>
+                                    <th>Type</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Location</th>
+                                    <th>Owner</th>
+                                    <th>Date</th>
+                                    <th>Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="item, stat : ${recentItems}">
+                                    <td class="text-muted small" th:text="${stat.index + 1}">1</td>
+                                    <td class="fw-semibold" th:text="${item.title}">Title</td>
+                                    <td>
+                                        <span th:if="${item.type != null and item.type.name() == 'LOST'}"
+                                              class="badge lf-badge-lost">LOST</span>
+                                        <span th:if="${item.type != null and item.type.name() == 'FOUND'}"
+                                              class="badge lf-badge-found">FOUND</span>
+                                    </td>
+                                    <td th:text="${item.category}">Category</td>
+                                    <td>
+                                        <span th:switch="${item.status != null ? item.status.name() : ''}">
+                                            <span th:case="'ACTIVE'" class="badge lf-badge-active">Active</span>
+                                            <span th:case="'CLAIMED'" class="badge lf-badge-claimed">Claimed</span>
+                                            <span th:case="'CLOSED'" class="badge lf-badge-closed">Closed</span>
+                                            <span th:case="*" class="badge bg-secondary">—</span>
+                                        </span>
+                                    </td>
+                                    <td th:text="${item.location != null ? item.location : '—'}">Location</td>
+                                    <td th:text="${item.reporter != null ? item.reporter.name : '—'}">Owner</td>
+                                    <td>
+                                        <span th:text="${item.createdAt != null ? item.createdAt != null ? item.createdAt.toString() : "" : '—'}">Date</span>
+                                    </td>
+                                    <td>
+                                        <a th:href="@{/items/{id}(id=${item.id})}"
+                                           class="btn btn-xs lf-btn-view" title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div th:if="${recentItems == null or #lists.isEmpty(recentItems)}" class="lf-empty-state py-4">
+                        <i class="bi bi-inbox lf-empty-icon"></i>
+                        <p class="text-muted small mt-2 mb-0">No items yet.</p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
+

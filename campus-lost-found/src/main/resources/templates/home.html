@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Campus Lost &amp; Found — Find What Matters</title>
+    <meta name="description" content="Report lost items, post found belongings, and reconnect with what matters on campus."/>
+
+    <!-- Google Fonts: Inter + Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet"/>
+
+    <!-- Bootstrap 5 -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css"/>
+
+    <!-- Custom Stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body>
+
+<!-- =============== NAVBAR =============== -->
+<nav class="navbar navbar-expand-lg sticky-top lf-navbar">
+    <div class="container">
+        <a class="navbar-brand lf-brand" th:href="@{/}">
+            <i class="bi bi-search-heart-fill"></i>
+            <span>FindBack</span>
+        </a>
+
+        <button class="navbar-toggler border-0" type="button"
+                data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <i class="bi bi-list fs-4 text-white"></i>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1">
+                <li class="nav-item">
+                    <a class="nav-link active" th:href="@{/}">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/browse}">Browse Items</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/report-lost}">Report Lost</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" th:href="@{/report-found}">Report Found</a>
+                </li>
+            </ul>
+
+            <div class="d-flex align-items-center gap-2">
+                <!-- Not authenticated -->
+                <div sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/login}" class="btn btn-ghost-nav">Sign In</a>
+                    <a th:href="@{/register}" class="btn btn-primary-nav">Get Started</a>
+                </div>
+                <!-- Authenticated -->
+                <div sec:authorize="isAuthenticated()" class="d-flex align-items-center gap-2">
+                    <a th:href="@{/notifications}" class="btn btn-ghost-nav position-relative">
+                        <i class="bi bi-bell"></i>
+                    </a>
+                    <a th:href="@{/dashboard}" class="btn btn-primary-nav">
+                        <i class="bi bi-grid me-1"></i>Dashboard
+                    </a>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <button type="submit" class="btn btn-ghost-nav">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- =============== HERO =============== -->
+<section class="lf-hero">
+    <div class="container">
+        <!-- Flash messages -->
+        <div th:if="${logoutMsg}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-check-circle me-2"></i>You have been signed out successfully.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${registeredMsg}" class="alert alert-success alert-dismissible fade show mb-4" role="alert">
+            <i class="bi bi-check-circle me-2"></i>Account created! Please sign in.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+
+        <div class="row align-items-center g-5">
+            <div class="col-lg-6">
+                <div class="lf-badge-pill mb-3">
+                    <i class="bi bi-stars me-1"></i> University Campus Platform
+                </div>
+                <h1 class="lf-hero-title">
+                    Lost Something?<br/>
+                    <span class="lf-gradient-text">Let's Help You Find It.</span>
+                </h1>
+                <p class="lf-hero-subtitle">
+                    Report lost items, post found belongings, and reconnect
+                    with what matters on campus. Powered by smart matching.
+                </p>
+                <div class="d-flex flex-wrap gap-3 mt-4">
+                    <a th:href="@{/report-lost}" class="btn lf-btn-danger-lg">
+                        <i class="bi bi-exclamation-circle me-2"></i>Report Lost Item
+                    </a>
+                    <a th:href="@{/report-found}" class="btn lf-btn-success-lg">
+                        <i class="bi bi-hand-thumbs-up me-2"></i>Report Found Item
+                    </a>
+                </div>
+
+                <!-- Quick Search -->
+                <form th:action="@{/browse}" method="get" class="lf-search-bar mt-4">
+                    <i class="bi bi-search lf-search-icon"></i>
+                    <input type="text" name="keyword" class="form-control lf-search-input"
+                           placeholder="Search items — e.g. 'Black Samsung Phone'..."/>
+                    <button type="submit" class="btn lf-btn-search">Search</button>
+                </form>
+            </div>
+
+            <div class="col-lg-6">
+                <!-- Statistics Cards -->
+                <div class="row g-3">
+                    <div class="col-6">
+                        <div class="lf-stat-card lf-stat-lost">
+                            <div class="lf-stat-icon"><i class="bi bi-exclamation-triangle"></i></div>
+                            <div class="lf-stat-value" th:text="${totalLost}">0</div>
+                            <div class="lf-stat-label">Lost Reports</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="lf-stat-card lf-stat-found">
+                            <div class="lf-stat-icon"><i class="bi bi-check-circle"></i></div>
+                            <div class="lf-stat-value" th:text="${totalFound}">0</div>
+                            <div class="lf-stat-label">Found Reports</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="lf-stat-card lf-stat-claimed">
+                            <div class="lf-stat-icon"><i class="bi bi-trophy"></i></div>
+                            <div class="lf-stat-value" th:text="${totalClaimed}">0</div>
+                            <div class="lf-stat-label">Items Recovered</div>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <div class="lf-stat-card lf-stat-active">
+                            <div class="lf-stat-icon"><i class="bi bi-activity"></i></div>
+                            <div class="lf-stat-value" th:text="${totalActive}">0</div>
+                            <div class="lf-stat-label">Active Reports</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =============== HOW IT WORKS =============== -->
+<section class="lf-how-it-works py-5">
+    <div class="container">
+        <div class="text-center mb-5">
+            <div class="lf-badge-pill mb-3"><i class="bi bi-lightning me-1"></i> Simple Process</div>
+            <h2 class="lf-section-title">How It Works</h2>
+            <p class="lf-section-subtitle">Three simple steps to recover your belongings</p>
+        </div>
+        <div class="row g-4 justify-content-center">
+            <div class="col-md-4">
+                <div class="lf-step-card text-center">
+                    <div class="lf-step-num">01</div>
+                    <div class="lf-step-icon"><i class="bi bi-pencil-square"></i></div>
+                    <h5>Report</h5>
+                    <p>Fill in a quick report with item details, location, and your contact info.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lf-step-card text-center">
+                    <div class="lf-step-num">02</div>
+                    <div class="lf-step-icon"><i class="bi bi-cpu"></i></div>
+                    <h5>Smart Match</h5>
+                    <p>Our system automatically compares your report with existing entries to find matches.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="lf-step-card text-center">
+                    <div class="lf-step-num">03</div>
+                    <div class="lf-step-icon"><i class="bi bi-bell-fill"></i></div>
+                    <h5>Get Notified</h5>
+                    <p>Receive an instant notification when a match is found. Claim your item.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =============== RECENT ITEMS =============== -->
+<section class="py-5">
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <div class="lf-badge-pill mb-2"><i class="bi bi-clock-history me-1"></i> Just Added</div>
+                <h2 class="lf-section-title mb-0">Recent Reports</h2>
+            </div>
+            <a th:href="@{/browse}" class="btn lf-btn-outline-primary">
+                View All <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
+
+        <!-- Empty state -->
+        <div th:if="${#lists.isEmpty(recentItems)}" class="lf-empty-state">
+            <i class="bi bi-inbox lf-empty-icon"></i>
+            <h5>No Reports Yet</h5>
+            <p>Be the first to report a lost or found item on campus.</p>
+            <a th:href="@{/report-lost}" class="btn lf-btn-danger-sm">Report Lost Item</a>
+        </div>
+
+        <div class="row g-4" th:unless="${#lists.isEmpty(recentItems)}">
+            <div class="col-sm-6 col-md-4 col-lg-3" th:each="item : ${recentItems}">
+                <div class="lf-item-card h-100">
+                    <!-- Image -->
+                    <div class="lf-item-img-wrap">
+                        <img th:if="${item.imageUrl != null}"
+                             th:src="@{${item.imageUrl.startsWith('http') ? item.imageUrl : '/uploads/' + item.imageUrl}}"
+                             class="lf-item-img" alt="Item image"/>
+                        <div th:unless="${item.imageUrl != null}" class="lf-item-img-placeholder">
+                            <i class="bi bi-image"></i>
+                        </div>
+                        <!-- Type badge -->
+                        <span th:classappend="${item.type.name() == 'LOST'} ? 'lf-badge-lost' : 'lf-badge-found'"
+                              class="lf-type-badge"
+                              th:text="${item.type.name()}">LOST</span>
+                    </div>
+                    <div class="lf-item-body">
+                        <!-- Tags -->
+                        <div class="d-flex flex-wrap gap-1 mb-2">
+                            <span th:if="${item.urgent}" class="badge lf-tag-urgent"><i class="bi bi-lightning me-1"></i>Urgent</span>
+                            <span th:if="${item.rewardAmount != null}" class="badge lf-tag-reward"><i class="bi bi-gift me-1"></i>Reward</span>
+                            <span th:if="${item.verified}" class="badge lf-tag-verified"><i class="bi bi-patch-check me-1"></i>Verified</span>
+                        </div>
+                        <h6 class="lf-item-title" th:text="${item.title}">Item Title</h6>
+                        <div class="lf-item-meta">
+                            <span><i class="bi bi-tag me-1"></i><span th:text="${item.category}">Category</span></span>
+                            <span><i class="bi bi-geo-alt me-1"></i><span th:text="${item.location}">Location</span></span>
+                            <span><i class="bi bi-calendar me-1"></i>
+                                <span th:text="${item.itemDate != null ? item.itemDate.toString() : 'N/A'}">Date</span>
+                            </span>
+                        </div>
+                        <a th:href="@{/items/{id}(id=${item.id})}" class="btn lf-btn-view w-100 mt-2">
+                            View Details
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- =============== CTA =============== -->
+<section class="lf-cta-section py-5">
+    <div class="container text-center">
+        <h2 class="lf-cta-title">Ready to get started?</h2>
+        <p class="lf-cta-sub">Join hundreds of students on campus using FindBack every day.</p>
+        <div class="d-flex justify-content-center gap-3 flex-wrap">
+            <a th:href="@{/register}" class="btn lf-btn-white-lg">Create Free Account</a>
+            <a th:href="@{/browse}" class="btn lf-btn-outline-white-lg">Browse Items</a>
+        </div>
+    </div>
+</section>
+
+<!-- =============== FOOTER =============== -->
+<footer class="lf-footer">
+    <div class="container">
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="lf-brand mb-3">
+                    <i class="bi bi-search-heart-fill me-2"></i>FindBack
+                </div>
+                <p class="text-muted small">
+                    A university Design Patterns project demonstrating real-world
+                    application of Singleton, Factory, Decorator, Strategy, and Observer patterns.
+                </p>
+            </div>
+            <div class="col-lg-2">
+                <h6 class="lf-footer-heading">Navigation</h6>
+                <ul class="list-unstyled lf-footer-links">
+                    <li><a th:href="@{/}">Home</a></li>
+                    <li><a th:href="@{/browse}">Browse</a></li>
+                    <li><a th:href="@{/report-lost}">Report Lost</a></li>
+                    <li><a th:href="@{/report-found}">Report Found</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-2">
+                <h6 class="lf-footer-heading">Account</h6>
+                <ul class="list-unstyled lf-footer-links">
+                    <li><a th:href="@{/login}">Sign In</a></li>
+                    <li><a th:href="@{/register}">Register</a></li>
+                    <li><a th:href="@{/dashboard}" sec:authorize="isAuthenticated()">Dashboard</a></li>
+                </ul>
+            </div>
+            <div class="col-lg-4">
+                <h6 class="lf-footer-heading">Design Patterns Used</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge lf-pattern-badge">Singleton</span>
+                    <span class="badge lf-pattern-badge">Factory Method</span>
+                    <span class="badge lf-pattern-badge">Decorator</span>
+                    <span class="badge lf-pattern-badge">Strategy</span>
+                    <span class="badge lf-pattern-badge">Observer</span>
+                </div>
+            </div>
+        </div>
+        <div class="lf-footer-bottom">
+            <span class="text-muted small">
+                &copy; 2024 FindBack &mdash; Campus Lost &amp; Found Management System
+                &nbsp;&bull;&nbsp; University Design Patterns Lab Project
+            </span>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap 5 JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>

@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>My Reports — FindBack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body class="lf-body">
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar navbar-expand-lg sticky-top lf-navbar">
+    <div class="container">
+        <a class="navbar-brand lf-brand" th:href="@{/}">
+            <i class="bi bi-search-heart-fill"></i><span>FindBack</span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <i class="bi bi-list fs-4 text-white"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/browse}">Browse</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/report-lost}">Report Lost</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/report-found}">Report Found</a></li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <div sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/login}" class="btn btn-ghost-nav">Sign In</a>
+                    <a th:href="@{/register}" class="btn btn-primary-nav">Get Started</a>
+                </div>
+                <div sec:authorize="isAuthenticated()" class="d-flex align-items-center gap-2">
+                    <a th:href="@{/notifications}" class="btn btn-ghost-nav"><i class="bi bi-bell"></i></a>
+                    <a th:href="@{/dashboard}" class="btn btn-primary-nav"><i class="bi bi-grid me-1"></i>Dashboard</a>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-ghost-nav"><i class="bi bi-box-arrow-right"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ========== PAGE HEADER ========== -->
+<section class="lf-page-header">
+    <div class="container">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+            <div>
+                <h1 class="lf-page-title mb-1"><i class="bi bi-clipboard-list me-2"></i>My Reports</h1>
+                <p class="text-muted mb-0">Manage all your lost and found item reports</p>
+            </div>
+            <div class="d-flex gap-2">
+                <a th:href="@{/report-lost}" class="btn lf-btn-outline-primary">
+                    <i class="bi bi-plus-circle me-1"></i>Report Lost
+                </a>
+                <a th:href="@{/report-found}" class="btn lf-btn-primary">
+                    <i class="bi bi-plus-circle-fill me-1"></i>Report Found
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ========== MAIN CONTENT ========== -->
+<main class="container py-4">
+
+    <!-- Flash Messages -->
+    <div th:if="${successMsg}" class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+        <span th:text="${successMsg}">Success</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
+        <span th:text="${errorMsg}">Error</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- ===== FILTER TABS ===== -->
+    <div class="lf-section-card">
+        <div class="lf-section-header">
+            <!-- Nav Tabs -->
+            <ul class="nav nav-tabs lf-nav-tabs border-0" id="reportsTabs">
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${param.filter == null or param.filter == 'all'} ? 'active'"
+                       th:href="@{/my-reports(filter=all)}">
+                        All
+                        <span class="badge bg-secondary ms-1" th:if="${myItems != null}" th:text="${#lists.size(myItems)}">0</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${param.filter == 'lost'} ? 'active'"
+                       th:href="@{/my-reports(filter=lost)}">
+                        <span class="badge lf-badge-lost me-1">LOST</span>Lost
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${param.filter == 'found'} ? 'active'"
+                       th:href="@{/my-reports(filter=found)}">
+                        <span class="badge lf-badge-found me-1">FOUND</span>Found
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${param.filter == 'claimed'} ? 'active'"
+                       th:href="@{/my-reports(filter=claimed)}">
+                        Claimed
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link"
+                       th:classappend="${param.filter == 'closed'} ? 'active'"
+                       th:href="@{/my-reports(filter=closed)}">
+                        Closed
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <div class="lf-section-body p-0">
+
+            <!-- Table -->
+            <div th:if="${myItems != null and !#lists.isEmpty(myItems)}" class="table-responsive">
+                <table class="table lf-table mb-0">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;">Photo</th>
+                            <th>Item Name</th>
+                            <th>Type</th>
+                            <th>Category</th>
+                            <th>Location</th>
+                            <th>Date</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="item : ${myItems}">
+                            <!-- Thumbnail -->
+                            <td>
+                                <img th:if="${item.imageUrl != null and !item.imageUrl.isEmpty()}"
+                                     th:src="@{${item.imageUrl.startsWith('http') ? item.imageUrl : '/uploads/' + item.imageUrl}}"
+                                     th:alt="${item.title}"
+                                     class="lf-table-thumb"/>
+                                <div th:if="${item.imageUrl == null or item.imageUrl.isEmpty()}"
+                                     class="lf-table-thumb-placeholder">
+                                    <i class="bi bi-image"></i>
+                                </div>
+                            </td>
+                            <!-- Item Name -->
+                            <td>
+                                <a th:href="@{/items/{id}(id=${item.id})}" class="fw-semibold lf-table-link"
+                                   th:text="${item.title}">Item Name</a>
+                                <div th:if="${item.urgent}" class="mt-1">
+                                    <span class="badge lf-badge-urgent badge-sm">
+                                        <i class="bi bi-lightning-charge-fill me-1"></i>Urgent
+                                    </span>
+                                </div>
+                            </td>
+                            <!-- Type -->
+                            <td>
+                                <span th:if="${item.type != null and item.type.name() == 'LOST'}"
+                                      class="badge lf-badge-lost">LOST</span>
+                                <span th:if="${item.type != null and item.type.name() == 'FOUND'}"
+                                      class="badge lf-badge-found">FOUND</span>
+                            </td>
+                            <!-- Category -->
+                            <td th:text="${item.category}">Category</td>
+                            <!-- Location -->
+                            <td>
+                                <i class="bi bi-geo-alt text-muted me-1"></i>
+                                <span th:text="${item.location != null ? item.location : '—'}">Location</span>
+                            </td>
+                            <!-- Date -->
+                            <td>
+                                <span th:text="${item.itemDate != null ? item.itemDate.toString() : '-'}">Date</span>
+                            </td>
+                            <!-- Status -->
+                            <td>
+                                <span th:switch="${item.status != null ? item.status.name() : ''}">
+                                    <span th:case="'ACTIVE'" class="badge lf-badge-active">Active</span>
+                                    <span th:case="'CLAIMED'" class="badge lf-badge-claimed">Claimed</span>
+                                    <span th:case="'CLOSED'" class="badge lf-badge-closed">Closed</span>
+                                    <span th:case="*" class="badge bg-secondary">—</span>
+                                </span>
+                            </td>
+                            <!-- Actions -->
+                            <td>
+                                <div class="d-flex gap-1">
+                                    <a th:href="@{/items/{id}(id=${item.id})}"
+                                       class="btn btn-xs lf-btn-view" title="View">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a th:href="@{/items/{id}/edit(id=${item.id})}"
+                                       class="btn btn-xs lf-btn-edit" title="Edit">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <!-- Close -->
+                                    <form th:if="${item.status != null and item.status.name() == 'ACTIVE'}"
+                                          th:action="@{/items/{id}/close(id=${item.id})}" method="post" class="d-inline">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn btn-xs lf-btn-close"
+                                                title="Close Report"
+                                                onclick="return confirm('Close this report?')">
+                                            <i class="bi bi-x-circle"></i>
+                                        </button>
+                                    </form>
+                                    <!-- Delete -->
+                                    <form th:action="@{/items/{id}/delete(id=${item.id})}" method="post" class="d-inline">
+                                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                                        <button type="submit" class="btn btn-xs lf-btn-delete"
+                                                title="Delete"
+                                                onclick="return confirm('Permanently delete this report?')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Empty State -->
+            <div th:if="${myItems == null or #lists.isEmpty(myItems)}" class="lf-empty-state py-5">
+                <i class="bi bi-clipboard lf-empty-icon"></i>
+                <h6 class="mt-3 mb-1">No reports in this category</h6>
+                <p class="text-muted small mb-3">You haven't posted any reports here yet.</p>
+                <div class="d-flex gap-2 justify-content-center">
+                    <a th:href="@{/report-lost}" class="btn lf-btn-outline-primary btn-sm">Report Lost</a>
+                    <a th:href="@{/report-found}" class="btn lf-btn-primary btn-sm">Report Found</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="lf-footer mt-5">
+    <div class="container">
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="lf-brand mb-3"><i class="bi bi-search-heart-fill me-2"></i>FindBack</div>
+                <p class="text-muted small">Campus Lost &amp; Found Management System — Design Patterns Lab Project</p>
+            </div>
+            <div class="col-lg-4">
+                <h6 class="lf-footer-heading">Design Patterns</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge lf-pattern-badge">Singleton</span>
+                    <span class="badge lf-pattern-badge">Factory</span>
+                    <span class="badge lf-pattern-badge">Decorator</span>
+                    <span class="badge lf-pattern-badge">Strategy</span>
+                    <span class="badge lf-pattern-badge">Observer</span>
+                </div>
+            </div>
+        </div>
+        <div class="lf-footer-bottom">
+            <span class="text-muted small">&copy; 2024 FindBack &mdash; Campus Lost &amp; Found System</span>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+</body>
+</html>
+

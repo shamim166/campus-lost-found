@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Edit Report — FindBack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/style.css}"/>
+</head>
+<body class="lf-body">
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar navbar-expand-lg sticky-top lf-navbar">
+    <div class="container">
+        <a class="navbar-brand lf-brand" th:href="@{/}">
+            <i class="bi bi-search-heart-fill"></i><span>FindBack</span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <i class="bi bi-list fs-4 text-white"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/browse}">Browse</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/report-lost}">Report Lost</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/report-found}">Report Found</a></li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <div sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/login}" class="btn btn-ghost-nav">Sign In</a>
+                    <a th:href="@{/register}" class="btn btn-primary-nav">Get Started</a>
+                </div>
+                <div sec:authorize="isAuthenticated()" class="d-flex align-items-center gap-2">
+                    <a th:href="@{/notifications}" class="btn btn-ghost-nav"><i class="bi bi-bell"></i></a>
+                    <a th:href="@{/dashboard}" class="btn btn-primary-nav"><i class="bi bi-grid me-1"></i>Dashboard</a>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-ghost-nav"><i class="bi bi-box-arrow-right"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ========== PAGE HEADER ========== -->
+<section class="lf-page-header">
+    <div class="container">
+        <nav aria-label="breadcrumb" class="mb-2">
+            <ol class="breadcrumb lf-breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
+                <li class="breadcrumb-item"><a th:href="@{/my-reports}">My Reports</a></li>
+                <li class="breadcrumb-item">
+                    <a th:if="${item != null}" th:href="@{/items/{id}(id=${item.id})}"
+                       th:text="${item.title}">Item</a>
+                </li>
+                <li class="breadcrumb-item active">Edit</li>
+            </ol>
+        </nav>
+        <h1 class="lf-page-title mb-1"><i class="bi bi-pencil-square me-2"></i>Edit Report</h1>
+        <p class="text-muted mb-0" th:if="${item != null}">
+            Editing:
+            <strong th:text="${item.title}">Item Name</strong>
+            <span th:if="${item.type != null and item.type.name() == 'LOST'}" class="badge lf-badge-lost ms-2">LOST</span>
+            <span th:if="${item.type != null and item.type.name() == 'FOUND'}" class="badge lf-badge-found ms-2">FOUND</span>
+        </p>
+    </div>
+</section>
+
+<!-- ========== MAIN CONTENT ========== -->
+<main class="container py-4">
+
+    <!-- Flash Messages -->
+    <div th:if="${successMsg}" class="alert alert-success alert-dismissible d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+        <span th:text="${successMsg}">Success</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    <div th:if="${errorMsg}" class="alert alert-danger alert-dismissible d-flex align-items-center gap-2 mb-4" role="alert">
+        <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
+        <span th:text="${errorMsg}">Error</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <div th:if="${item != null}">
+        <div class="row g-4">
+            <!-- ===== FORM COLUMN ===== -->
+            <div class="col-lg-8">
+                <div class="lf-form-card">
+                    <div class="lf-form-card-header">
+                        <h5 class="mb-0"><i class="bi bi-pencil me-2"></i>Update Item Details</h5>
+                    </div>
+                    <div class="lf-form-card-body">
+                        <form th:action="@{/items/{id}/edit(id=${item.id})}" method="post"
+                              enctype="multipart/form-data"
+                              id="editItemForm" novalidate>
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                            <div class="row g-3">
+                                <!-- Item Name -->
+                                <div class="col-12">
+                                    <label for="title" class="form-label lf-form-label">Item Name <span class="text-danger">*</span></label>
+                                    <input type="text"
+                                           class="form-control lf-form-control"
+                                           id="title"
+                                           name="title"
+                                           th:value="${item.title}"
+                                           required/>
+                                </div>
+
+                                <!-- Category -->
+                                <div class="col-md-6">
+                                    <label for="category" class="form-label lf-form-label">Category <span class="text-danger">*</span></label>
+                                    <select class="form-select lf-form-control" id="category" name="category" required>
+                                        <option value="">— Select category —</option>
+                                        <option th:each="cat : ${categories}"
+                                                th:value="${cat}"
+                                                th:text="${cat}"
+                                                th:selected="${item.category == cat}">Category</option>
+                                    </select>
+                                </div>
+
+                                <!-- Location -->
+                                <div class="col-md-6">
+                                    <label for="location" class="form-label lf-form-label">Location</label>
+                                    <div class="input-group lf-input-group">
+                                        <span class="input-group-text lf-input-icon"><i class="bi bi-geo-alt"></i></span>
+                                        <input type="text"
+                                               class="form-control lf-form-control"
+                                               id="location"
+                                               name="location"
+                                               th:value="${item.location}"/>
+                                    </div>
+                                </div>
+
+                                <!-- Date Lost or Found -->
+                                <div class="col-md-6">
+                                    <label for="dateLost" class="form-label lf-form-label"
+                                           th:text="${item.type != null and item.type.name() == 'LOST' ? 'Date Lost' : 'Date Found'}">Date</label>
+                                    <div class="input-group lf-input-group">
+                                        <span class="input-group-text lf-input-icon"><i class="bi bi-calendar3"></i></span>
+                                        <input type="date"
+                                               class="form-control lf-form-control"
+                                               id="dateLost"
+                                               name="dateLost"
+                                               th:value="${item.itemDate != null ? item.itemDate.toString() : ''}"/>
+                                    </div>
+                                </div>
+
+                                <!-- Time -->
+                                <div class="col-md-6">
+                                    <label for="timeLost" class="form-label lf-form-label">Time</label>
+                                    <div class="input-group lf-input-group">
+                                        <span class="input-group-text lf-input-icon"><i class="bi bi-clock"></i></span>
+                                        <input type="time"
+                                               class="form-control lf-form-control"
+                                               id="timeLost"
+                                               name="timeLost"
+                                               th:value="${item.itemTime != null ? item.itemTime.toString() : ''}"/>
+                                    </div>
+                                </div>
+
+                                <!-- Description -->
+                                <div class="col-12">
+                                    <label for="description" class="form-label lf-form-label">Description</label>
+                                    <textarea class="form-control lf-form-control"
+                                              id="description"
+                                              name="description"
+                                              rows="4"
+                                              th:text="${item.description}">Description</textarea>
+                                </div>
+
+                                <!-- Contact Phone -->
+                                <div class="col-md-6">
+                                    <label for="contactPhone" class="form-label lf-form-label">Contact Phone</label>
+                                    <div class="input-group lf-input-group">
+                                        <span class="input-group-text lf-input-icon"><i class="bi bi-telephone"></i></span>
+                                        <input type="tel"
+                                               class="form-control lf-form-control"
+                                               id="contactPhone"
+                                               name="contactPhone"
+                                               th:value="${item.contactPhone}"/>
+                                    </div>
+                                </div>
+
+                                <!-- Contact Email -->
+                                <div class="col-md-6">
+                                    <label for="contactEmail" class="form-label lf-form-label">Contact Email</label>
+                                    <div class="input-group lf-input-group">
+                                        <span class="input-group-text lf-input-icon"><i class="bi bi-envelope"></i></span>
+                                        <input type="email"
+                                               class="form-control lf-form-control"
+                                               id="contactEmail"
+                                               name="contactEmail"
+                                               th:value="${item.contactEmail}"/>
+                                    </div>
+                                </div>
+
+                                <!-- Reward (Lost only) -->
+                                <div class="col-md-6" th:if="${item.type != null and item.type.name() == 'LOST'}">
+                                    <label for="rewardAmount" class="form-label lf-form-label">Reward Amount (BDT)</label>
+                                    <div class="input-group lf-input-group">
+                                        <span class="input-group-text lf-input-icon"><i class="bi bi-currency-exchange"></i></span>
+                                        <input type="number"
+                                               class="form-control lf-form-control"
+                                               id="rewardAmount"
+                                               name="rewardAmount"
+                                               min="0"
+                                               step="0.01"
+                                               th:value="${item.rewardAmount}"/>
+                                    </div>
+                                </div>
+
+                                <!-- Urgent (Lost only) -->
+                                <div class="col-md-6 d-flex align-items-end" th:if="${item.type != null and item.type.name() == 'LOST'}">
+                                    <div class="lf-check-card w-100">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" role="switch"
+                                                   id="urgent" name="urgent" value="true"
+                                                   th:checked="${item.urgent}"/>
+                                            <label class="form-check-label fw-semibold" for="urgent">
+                                                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>Mark as Urgent
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Current Photo -->
+                                <div class="col-12" th:if="${item.imageUrl != null and !item.imageUrl.isEmpty()}">
+                                    <label class="form-label lf-form-label">Current Photo</label>
+                                    <div class="d-flex align-items-center gap-3">
+                                        <img th:src="@{${item.imageUrl.startsWith('http') ? item.imageUrl : '/uploads/' + item.imageUrl}}" alt="Current photo"
+                                             class="rounded" style="height: 80px; width: 80px; object-fit: cover;"/>
+                                        <span class="text-muted small">Upload a new photo below to replace this one.</span>
+                                    </div>
+                                </div>
+
+                                <!-- New Photo Upload -->
+                                <div class="col-12">
+                                    <label for="photo" class="form-label lf-form-label">
+                                        <i class="bi bi-image me-1"></i>
+                                        <span th:text="${item.imageUrl != null and !item.imageUrl.isEmpty() ? 'Replace Photo' : 'Upload Photo'}">Upload Photo</span>
+                                        <span class="text-muted fw-normal">(optional)</span>
+                                    </label>
+                                    <div class="lf-upload-area">
+                                        <input type="file"
+                                               class="form-control lf-file-input"
+                                               id="photo"
+                                               name="photo"
+                                               accept="image/*"
+                                               onchange="previewImage(this, 'photoPreview')"/>
+                                        <div class="lf-upload-placeholder" id="uploadPlaceholder">
+                                            <i class="bi bi-cloud-upload fs-2 mb-2"></i>
+                                            <p class="mb-1 fw-semibold">Click to upload</p>
+                                            <p class="text-muted small mb-0">PNG, JPG, GIF up to 10MB</p>
+                                        </div>
+                                        <div id="photoPreview" class="lf-image-preview d-none">
+                                            <img id="previewImg" src="#" alt="Preview" class="img-fluid rounded"/>
+                                            <button type="button" class="btn btn-sm btn-danger mt-2" onclick="clearPreview()">
+                                                <i class="bi bi-x me-1"></i>Remove
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Submit -->
+                                <div class="col-12 mt-2">
+                                    <div class="d-flex gap-3">
+                                        <button type="submit" class="btn lf-btn-primary px-5 py-2" id="submitBtn">
+                                            <span class="submit-text"><i class="bi bi-save me-2"></i>Save Changes</span>
+                                            <span class="loading-spinner d-none">
+                                                <span class="spinner-border spinner-border-sm me-2"></span>Saving...
+                                            </span>
+                                        </button>
+                                        <a th:href="@{/items/{id}(id=${item.id})}" class="btn lf-btn-outline-secondary py-2">Cancel</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ===== SIDEBAR ===== -->
+            <div class="col-lg-4">
+                <div class="lf-tips-card sticky-top" style="top: 80px;">
+                    <div class="lf-tips-header">
+                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Edit Guidelines</h6>
+                    </div>
+                    <div class="lf-tips-body">
+                        <ul class="list-unstyled lf-tips-list mb-0">
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i><span>Keep all information accurate and up-to-date</span></li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i><span>Update contact info if it has changed</span></li>
+                            <li><i class="bi bi-check-circle-fill text-success me-2"></i><span>Adding a photo significantly improves visibility</span></li>
+                            <li><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i><span>Don't change item type once submitted</span></li>
+                        </ul>
+                    </div>
+                    <div class="mt-3 border-top pt-3">
+                        <a th:href="@{/items/{id}(id=${item.id})}" class="btn lf-btn-outline-primary w-100 btn-sm mb-2">
+                            <i class="bi bi-eye me-1"></i>View Item Page
+                        </a>
+                        <form th:action="@{/items/{id}/delete(id=${item.id})}" method="post">
+                            <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                            <button type="submit" class="btn btn-outline-danger w-100 btn-sm"
+                                    onclick="return confirm('Permanently delete this report?')">
+                                <i class="bi bi-trash me-1"></i>Delete This Report
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Item not found -->
+    <div th:if="${item == null}" class="lf-empty-state py-5">
+        <i class="bi bi-question-circle lf-empty-icon"></i>
+        <h5 class="mt-3 mb-2">Item Not Found</h5>
+        <p class="text-muted mb-4">This item may not exist or you don't have permission to edit it.</p>
+        <a th:href="@{/my-reports}" class="btn lf-btn-primary">My Reports</a>
+    </div>
+
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="lf-footer mt-5">
+    <div class="container">
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="lf-brand mb-3"><i class="bi bi-search-heart-fill me-2"></i>FindBack</div>
+                <p class="text-muted small">Campus Lost &amp; Found Management System — Design Patterns Lab Project</p>
+            </div>
+            <div class="col-lg-4">
+                <h6 class="lf-footer-heading">Design Patterns</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge lf-pattern-badge">Singleton</span>
+                    <span class="badge lf-pattern-badge">Factory</span>
+                    <span class="badge lf-pattern-badge">Decorator</span>
+                    <span class="badge lf-pattern-badge">Strategy</span>
+                    <span class="badge lf-pattern-badge">Observer</span>
+                </div>
+            </div>
+        </div>
+        <div class="lf-footer-bottom">
+            <span class="text-muted small">&copy; 2024 FindBack &mdash; Campus Lost &amp; Found System</span>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+<script>
+    function previewImage(input, previewId) {
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                document.getElementById('previewImg').src = e.target.result;
+                document.getElementById('uploadPlaceholder').classList.add('d-none');
+                document.getElementById(previewId).classList.remove('d-none');
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+
+    function clearPreview() {
+        document.getElementById('photo').value = '';
+        document.getElementById('previewImg').src = '#';
+        document.getElementById('photoPreview').classList.add('d-none');
+        document.getElementById('uploadPlaceholder').classList.remove('d-none');
+    }
+
+    document.getElementById('editItemForm').addEventListener('submit', function () {
+        const btn = document.getElementById('submitBtn');
+        btn.querySelector('.submit-text').classList.add('d-none');
+        btn.querySelector('.loading-spinner').classList.remove('d-none');
+        btn.disabled = true;
+    });
+</script>
+</body>
+</html>
+

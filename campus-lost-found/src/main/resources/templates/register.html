@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Create Account — FindBack</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css"/>
+    <link rel="stylesheet" th:href="@{/css/style.css?v=2}"/>
+</head>
+<body class="lf-auth-wrapper">
+
+<!-- ========== NAVBAR ========== -->
+<nav class="navbar navbar-expand-lg sticky-top lf-navbar">
+    <div class="container">
+        <a class="navbar-brand lf-brand" th:href="@{/}">
+            <i class="bi bi-search-heart-fill"></i><span>FindBack</span>
+        </a>
+        <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+            <i class="bi bi-list fs-4 text-white"></i>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarMain">
+            <ul class="navbar-nav mx-auto mb-2 mb-lg-0 gap-1">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}">Home</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/browse}">Browse</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/report-lost}">Report Lost</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/report-found}">Report Found</a></li>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+                <div sec:authorize="!isAuthenticated()">
+                    <a th:href="@{/login}" class="btn btn-ghost-nav">Sign In</a>
+                    <a th:href="@{/register}" class="btn btn-primary-nav">Get Started</a>
+                </div>
+                <div sec:authorize="isAuthenticated()" class="d-flex align-items-center gap-2">
+                    <a th:href="@{/notifications}" class="btn btn-ghost-nav"><i class="bi bi-bell"></i></a>
+                    <a th:href="@{/dashboard}" class="btn btn-primary-nav"><i class="bi bi-grid me-1"></i>Dashboard</a>
+                    <form th:action="@{/logout}" method="post" class="d-inline">
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+                        <button type="submit" class="btn btn-ghost-nav"><i class="bi bi-box-arrow-right"></i></button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ========== MAIN ========== -->
+<main class="lf-auth-main d-flex align-items-center justify-content-center py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-6 col-lg-5">
+
+                <!-- Auth Card -->
+                <div class="lf-auth-card p-4 p-md-5">
+
+                    <!-- Brand -->
+                    <div class="text-center mb-4">
+                        <div class="lf-auth-icon mb-3">
+                            <i class="bi bi-person-plus-fill"></i>
+                        </div>
+                        <h1 class="h3 fw-bold lf-auth-title">Create Account</h1>
+                        <p class="text-muted small">Join <strong>FindBack</strong> — Help reunite campus community</p>
+                    </div>
+
+                    <!-- Flash Messages -->
+                    <div th:if="${errorMsg}" class="alert alert-danger d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+                        <i class="bi bi-exclamation-circle-fill flex-shrink-0"></i>
+                        <span th:text="${errorMsg}">Error message</span>
+                    </div>
+                    <div th:if="${successMsg}" class="alert alert-success d-flex align-items-center gap-2 py-2 mb-3" role="alert">
+                        <i class="bi bi-check-circle-fill flex-shrink-0"></i>
+                        <span th:text="${successMsg}">Success message</span>
+                    </div>
+
+                    <!-- Register Form -->
+                    <form th:action="@{/register}" method="post" id="registerForm" novalidate>
+                        <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}"/>
+
+                        <!-- Full Name -->
+                        <div class="mb-3">
+                            <label for="name" class="form-label lf-form-label">Full Name <span class="text-danger">*</span></label>
+                            <div class="input-group lf-input-group">
+                                <span class="input-group-text lf-input-icon"><i class="bi bi-person"></i></span>
+                                <input type="text"
+                                       class="form-control lf-form-control"
+                                       id="name"
+                                       name="name"
+                                       th:value="${param.name}"
+                                       placeholder="John Doe"
+                                       required
+                                       autofocus/>
+                            </div>
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label for="email" class="form-label lf-form-label">Email Address <span class="text-danger">*</span></label>
+                            <div class="input-group lf-input-group">
+                                <span class="input-group-text lf-input-icon"><i class="bi bi-envelope"></i></span>
+                                <input type="email"
+                                       class="form-control lf-form-control"
+                                       id="email"
+                                       name="email"
+                                       th:value="${param.email}"
+                                       placeholder="you@university.edu"
+                                       required/>
+                            </div>
+                        </div>
+
+                        <!-- Password -->
+                        <div class="mb-3">
+                            <label for="password" class="form-label lf-form-label">Password <span class="text-danger">*</span></label>
+                            <div class="input-group lf-input-group">
+                                <span class="input-group-text lf-input-icon"><i class="bi bi-lock"></i></span>
+                                <input type="password"
+                                       class="form-control lf-form-control"
+                                       id="password"
+                                       name="password"
+                                       placeholder="Min. 8 characters"
+                                       minlength="8"
+                                       required/>
+                                <button class="btn lf-input-icon border-0" type="button"
+                                        onclick="togglePwd('password', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="form-text text-muted small">Must be at least 8 characters.</div>
+                        </div>
+
+                        <!-- Confirm Password -->
+                        <div class="mb-3">
+                            <label for="confirmPassword" class="form-label lf-form-label">Confirm Password <span class="text-danger">*</span></label>
+                            <div class="input-group lf-input-group">
+                                <span class="input-group-text lf-input-icon"><i class="bi bi-lock-fill"></i></span>
+                                <input type="password"
+                                       class="form-control lf-form-control"
+                                       id="confirmPassword"
+                                       name="confirmPassword"
+                                       placeholder="Re-enter password"
+                                       required/>
+                                <button class="btn lf-input-icon border-0" type="button"
+                                        onclick="togglePwd('confirmPassword', this)">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Phone (Optional) -->
+                        <div class="mb-4">
+                            <label for="phone" class="form-label lf-form-label">Phone Number <span class="text-muted fw-normal">(optional)</span></label>
+                            <div class="input-group lf-input-group">
+                                <span class="input-group-text lf-input-icon"><i class="bi bi-telephone"></i></span>
+                                <input type="tel"
+                                       class="form-control lf-form-control"
+                                       id="phone"
+                                       name="phone"
+                                       th:value="${param.phone}"
+                                       placeholder="+880 1700 000000"/>
+                            </div>
+                        </div>
+
+                        <!-- Terms -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox" id="terms" required/>
+                            <label class="form-check-label small text-muted" for="terms">
+                                I agree to the <a href="#" class="lf-auth-link">Terms of Service</a> and <a href="#" class="lf-auth-link">Privacy Policy</a>
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn lf-btn-primary w-100 py-2 mb-3">
+                            <i class="bi bi-person-check me-2"></i>Create Account
+                        </button>
+                    </form>
+
+                    <div class="text-center">
+                        <span class="text-muted small">Already have an account?</span>
+                        <a th:href="@{/login}" class="lf-auth-link ms-1 small fw-semibold">Sign in here</a>
+                    </div>
+                </div>
+
+                <p class="text-center text-muted small mt-3">
+                    <i class="bi bi-shield-lock me-1"></i>Your data is secured and never shared
+                </p>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- ========== FOOTER ========== -->
+<footer class="lf-footer">
+    <div class="container">
+        <div class="row g-4 mb-4">
+            <div class="col-lg-4">
+                <div class="lf-brand mb-3"><i class="bi bi-search-heart-fill me-2"></i>FindBack</div>
+                <p class="text-muted small">Campus Lost &amp; Found Management System — Design Patterns Lab Project</p>
+            </div>
+            <div class="col-lg-4">
+                <h6 class="lf-footer-heading">Design Patterns</h6>
+                <div class="d-flex flex-wrap gap-2">
+                    <span class="badge lf-pattern-badge">Singleton</span>
+                    <span class="badge lf-pattern-badge">Factory</span>
+                    <span class="badge lf-pattern-badge">Decorator</span>
+                    <span class="badge lf-pattern-badge">Strategy</span>
+                    <span class="badge lf-pattern-badge">Observer</span>
+                </div>
+            </div>
+        </div>
+        <div class="lf-footer-bottom">
+            <span class="text-muted small">&copy; 2024 FindBack &mdash; Campus Lost &amp; Found System</span>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/app.js}"></script>
+<script>
+    function togglePwd(fieldId, btn) {
+        const f = document.getElementById(fieldId);
+        const ico = btn.querySelector('i');
+        if (f.type === 'password') {
+            f.type = 'text';
+            ico.className = 'bi bi-eye-slash';
+        } else {
+            f.type = 'password';
+            ico.className = 'bi bi-eye';
+        }
+    }
+
+    // Client-side password match validation
+    document.getElementById('registerForm').addEventListener('submit', function (e) {
+        const pwd = document.getElementById('password').value;
+        const cpwd = document.getElementById('confirmPassword').value;
+        if (pwd !== cpwd) {
+            e.preventDefault();
+            alert('Passwords do not match. Please try again.');
+        }
+    });
+</script>
+</body>
+</html>
