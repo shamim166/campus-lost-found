@@ -97,12 +97,15 @@ public class ItemService {
     // =========================================================
     private String saveImage(MultipartFile file) throws IOException {
         if (file == null || file.isEmpty()) return null;
-        String contentType = file.getContentType();
-        if (contentType == null || !contentType.startsWith("image/")) {
-            contentType = "image/jpeg";
+        Path uploadPath = Paths.get("uploads/items").toAbsolutePath();
+        if (!Files.exists(uploadPath)) {
+            Files.createDirectories(uploadPath);
         }
-        String base64 = java.util.Base64.getEncoder().encodeToString(file.getBytes());
-        return "data:" + contentType + ";base64," + base64;
+        String ext      = getExtension(file.getOriginalFilename());
+        String filename = UUID.randomUUID() + ext;
+        Path filePath   = uploadPath.resolve(filename);
+        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
+        return "items/" + filename;
     }
 
     private String getExtension(String filename) {
