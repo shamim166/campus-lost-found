@@ -96,15 +96,13 @@ public class ItemService {
     // Save image file to disk
     // =========================================================
     private String saveImage(MultipartFile file) throws IOException {
-        Path uploadPath = Paths.get(UPLOAD_DIR);
-        if (!Files.exists(uploadPath)) {
-            Files.createDirectories(uploadPath);
+        if (file == null || file.isEmpty()) return null;
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.startsWith("image/")) {
+            contentType = "image/jpeg";
         }
-        String ext      = getExtension(file.getOriginalFilename());
-        String filename = UUID.randomUUID() + ext;
-        Path filePath   = uploadPath.resolve(filename);
-        Files.copy(file.getInputStream(), filePath, StandardCopyOption.REPLACE_EXISTING);
-        return "items/" + filename;
+        String base64 = java.util.Base64.getEncoder().encodeToString(file.getBytes());
+        return "data:" + contentType + ";base64," + base64;
     }
 
     private String getExtension(String filename) {

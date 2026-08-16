@@ -103,7 +103,7 @@ public class ItemController {
             @RequestParam(required = false) String contactEmail,
             @RequestParam(defaultValue = "false") boolean urgent,
             @RequestParam(required = false) BigDecimal rewardAmount,
-            @RequestParam(required = false) MultipartFile imageFile,
+            @RequestParam(value = "photo", required = false) MultipartFile imageFile,
             @AuthenticationPrincipal UserDetails principal,
             RedirectAttributes redirectAttributes) {
 
@@ -149,7 +149,7 @@ public class ItemController {
             @RequestParam(required = false) String itemTime,
             @RequestParam(required = false) String contactPhone,
             @RequestParam(required = false) String contactEmail,
-            @RequestParam(required = false) MultipartFile imageFile,
+            @RequestParam(value = "photo", required = false) MultipartFile imageFile,
             @AuthenticationPrincipal UserDetails principal,
             RedirectAttributes redirectAttributes) {
 
@@ -202,7 +202,7 @@ public class ItemController {
             @RequestParam(required = false) BigDecimal rewardAmount,
             @RequestParam(required = false) String contactPhone,
             @RequestParam(required = false) String contactEmail,
-            @RequestParam(required = false) MultipartFile imageFile,
+            @RequestParam(value = "photo", required = false) MultipartFile imageFile,
             @AuthenticationPrincipal UserDetails principal,
             RedirectAttributes redirectAttributes) {
 

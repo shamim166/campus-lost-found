@@ -53,7 +53,7 @@ public class Item {
     @Column(nullable = false)
     private ItemStatus status = ItemStatus.ACTIVE;
 
-    @Column(name = "image_url")
+    @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;
 
     @Column(name = "reward_amount", precision = 10, scale = 2)

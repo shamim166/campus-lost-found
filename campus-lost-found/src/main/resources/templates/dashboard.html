@@ -156,7 +156,7 @@
                     <!-- Image / Placeholder -->
                     <div class="position-relative">
                         <img th:if="${item.imageUrl != null and !item.imageUrl.isEmpty()}"
-                             th:src="@{${item.imageUrl.startsWith('http') ? item.imageUrl : '/uploads/' + item.imageUrl}}"
+                             th:src="@{${(item.imageUrl.startsWith('http') or item.imageUrl.startsWith('data:')) ? item.imageUrl : '/uploads/' + item.imageUrl}}"
                              th:alt="${item.title}"
                              class="card-img-top" style="height: 180px; object-fit: cover;" />
                         <div th:if="${item.imageUrl == null or item.imageUrl.isEmpty()}"

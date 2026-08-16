@@ -221,7 +221,7 @@
                     <!-- Image -->
                     <div class="lf-item-img-wrap">
                         <img th:if="${item.imageUrl != null and !item.imageUrl.isEmpty()}"
-                             th:src="@{${item.imageUrl.startsWith('http') ? item.imageUrl : '/uploads/' + item.imageUrl}}"
+                             th:src="@{${(item.imageUrl.startsWith('http') or item.imageUrl.startsWith('data:')) ? item.imageUrl : '/uploads/' + item.imageUrl}}"
                              class="lf-item-img" alt="Item image"/>
                         <div th:if="${item.imageUrl == null or item.imageUrl.isEmpty()}" class="lf-item-img-placeholder">
                             <i class="bi bi-image"></i>

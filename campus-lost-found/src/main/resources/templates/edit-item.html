@@ -232,7 +232,7 @@
                                 <div class="col-12" th:if="${item.imageUrl != null and !item.imageUrl.isEmpty()}">
                                     <label class="form-label lf-form-label">Current Photo</label>
                                     <div class="d-flex align-items-center gap-3">
-                                        <img th:src="@{${item.imageUrl.startsWith('http') ? item.imageUrl : '/uploads/' + item.imageUrl}}" alt="Current photo"
+                                        <img th:src="@{${(item.imageUrl.startsWith('http') or item.imageUrl.startsWith('data:')) ? item.imageUrl : '/uploads/' + item.imageUrl}}" alt="Current photo"
                                              class="rounded" style="height: 80px; width: 80px; object-fit: cover;"/>
                                         <span class="text-muted small">Upload a new photo below to replace this one.</span>
                                     </div>

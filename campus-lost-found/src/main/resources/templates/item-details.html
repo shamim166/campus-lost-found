@@ -82,7 +82,7 @@
                 <div class="lf-detail-img-card">
                     <!-- Item Image -->
                     <img th:if="${item.imageUrl != null and !item.imageUrl.isEmpty()}"
-                         th:src="@{${item.imageUrl.startsWith('http') ? item.imageUrl : '/uploads/' + item.imageUrl}}"
+                         th:src="@{${(item.imageUrl.startsWith('http') or item.imageUrl.startsWith('data:')) ? item.imageUrl : '/uploads/' + item.imageUrl}}"
                          th:alt="${item.title}"
                          class="lf-detail-img"/>
                     <div th:if="${item.imageUrl == null or item.imageUrl.isEmpty()}"
